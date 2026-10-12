@@ -1,0 +1,394 @@
+{
+    "info":  {
+                 "name":  "Library Management System",
+                 "description":  "Request examples for the library API. Log in before protected requests; Postman retains librarian cookies automatically.",
+                 "schema":  "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+             },
+    "variable":  [
+                     {
+                         "key":  "baseUrl",
+                         "value":  "http://127.0.0.1:8000"
+                     },
+                     {
+                         "key":  "memberToken",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "otherMemberToken",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "bookId",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "loanId",
+                         "value":  ""
+                     },
+                     {
+                         "key":  "fineId",
+                         "value":  "1"
+                     },
+                     {
+                         "key":  "partnerKey",
+                         "value":  "local-catalogue-key"
+                     },
+                     {
+                         "key":  "partnerSecret",
+                         "value":  "local-catalogue-secret"
+                     }
+                 ],
+    "item":  [
+                 {
+                     "name":  "Librarian login",
+                     "request":  {
+                                     "method":  "POST",
+                                     "header":  [
+                                                    {
+                                                        "key":  "Content-Type",
+                                                        "value":  "application/json"
+                                                    }
+                                                ],
+                                     "body":  {
+                                                  "mode":  "raw",
+                                                  "raw":  "{\"email\":\"librarian1@example.com\",\"password\":\"password123\"}"
+                                              },
+                                     "url":  "{{baseUrl}}/auth/librarian/login"
+                                 }
+                 },
+                 {
+                     "name":  "Books",
+                     "item":  [
+                                  {
+                                      "name":  "List books",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{baseUrl}}/books"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Get book",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{baseUrl}}/books/1"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Missing book (404)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{baseUrl}}/books/99999"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Add book with multiple authors (requires librarian)",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "if (pm.response.code === 201) pm.collectionVariables.set(\u0027bookId\u0027, pm.response.json().book_id);"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{ \"title\":\"Postman Test Book\",\"isbn\":\"POSTMAN-TEST-BOOK\",\"publication_year\":2024,\"publisher\":\"Postman\",\"authors\":[\"Author One\",\"Author Two\"] }"
+                                                               },
+                                                      "url":  "{{baseUrl}}/books"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Add a physical copy at Main Branch (requires librarian)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"branch_id\":1}"
+                                                               },
+                                                      "url":  "{{baseUrl}}/books/{{bookId}}/copies"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Member registration and login",
+                     "item":  [
+                                  {
+                                      "name":  "Register member",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"member_name\":\"Postman Reader\",\"email\":\"postman-reader@example.com\",\"password\":\"secure-pass-123\"}"
+                                                               },
+                                                      "url":  "{{baseUrl}}/members"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Duplicate registration (409 after first run)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"member_name\":\"Duplicate Reader\",\"email\":\"postman-reader@example.com\",\"password\":\"secure-pass-123\"}"
+                                                               },
+                                                      "url":  "{{baseUrl}}/members"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Member login",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "if (pm.response.code === 200) pm.collectionVariables.set(\u0027memberToken\u0027, pm.response.json().access_token);"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"email\":\"aman@example.com\",\"password\":\"password123\"}"
+                                                               },
+                                                      "url":  "{{baseUrl}}/auth/member/login"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Invalid member login (401)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"email\":\"aman@example.com\",\"password\":\"incorrect\"}"
+                                                               },
+                                                      "url":  "{{baseUrl}}/auth/member/login"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Invalid token (401)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer invalid-token"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/loans/me"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Loans",
+                     "item":  [
+                                  {
+                                      "name":  "Checkout copy (requires librarian)",
+                                      "event":  [
+                                                    {
+                                                        "listen":  "test",
+                                                        "script":  {
+                                                                       "exec":  [
+                                                                                    "if (pm.response.code === 201) pm.collectionVariables.set(\u0027loanId\u0027, pm.response.json().loan_id);"
+                                                                                ]
+                                                                   }
+                                                    }
+                                                ],
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"member_id\":1,\"copy_id\":6,\"due_date\":\"2099-12-31\"}"
+                                                               },
+                                                      "url":  "{{baseUrl}}/loans/checkout"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Unavailable copy (409; use copy 6 after checkout)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Content-Type",
+                                                                         "value":  "application/json"
+                                                                     }
+                                                                 ],
+                                                      "body":  {
+                                                                   "mode":  "raw",
+                                                                   "raw":  "{\"member_id\":2,\"copy_id\":6,\"due_date\":\"2099-12-31\"}"
+                                                               },
+                                                      "url":  "{{baseUrl}}/loans/checkout"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "My loans",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{memberToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/loans/me"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Return loan (requires librarian)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "url":  "{{baseUrl}}/loans/{{loanId}}/return"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Duplicate return (409)",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "url":  "{{baseUrl}}/loans/{{loanId}}/return"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Fines",
+                     "item":  [
+                                  {
+                                      "name":  "My fines",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{memberToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/fines/me"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Pay own fine",
+                                      "request":  {
+                                                      "method":  "POST",
+                                                      "header":  [
+                                                                     {
+                                                                         "key":  "Authorization",
+                                                                         "value":  "Bearer {{memberToken}}"
+                                                                     }
+                                                                 ],
+                                                      "url":  "{{baseUrl}}/fines/{{fineId}}/pay"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Reports",
+                     "item":  [
+                                  {
+                                      "name":  "Overdue loans (requires librarian)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{baseUrl}}/reports/overdue-loans"
+                                                  }
+                                  },
+                                  {
+                                      "name":  "Most borrowed books (requires librarian)",
+                                      "request":  {
+                                                      "method":  "GET",
+                                                      "url":  "{{baseUrl}}/reports/most-borrowed-books"
+                                                  }
+                                  }
+                              ]
+                 },
+                 {
+                     "name":  "Partner catalogue",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "X-API-Key",
+                                                        "value":  "{{partnerKey}}"
+                                                    },
+                                                    {
+                                                        "key":  "X-API-Secret",
+                                                        "value":  "{{partnerSecret}}"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/partner/catalogue"
+                                 }
+                 },
+                 {
+                     "name":  "Partner request missing credentials (401)",
+                     "request":  {
+                                     "method":  "GET",
+                                     "url":  "{{baseUrl}}/partner/catalogue"
+                                 }
+                 },
+                 {
+                     "name":  "Partner request invalid credentials (401)",
+                     "request":  {
+                                     "method":  "GET",
+                                     "header":  [
+                                                    {
+                                                        "key":  "X-API-Key",
+                                                        "value":  "wrong-key"
+                                                    },
+                                                    {
+                                                        "key":  "X-API-Secret",
+                                                        "value":  "wrong-secret"
+                                                    }
+                                                ],
+                                     "url":  "{{baseUrl}}/partner/catalogue"
+                                 }
+                 }
+             ]
+}
+
